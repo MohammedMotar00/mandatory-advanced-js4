@@ -18,7 +18,7 @@ class Game extends Component {
         }
     }
 
-    componentDidMount() {
+    startGame() {
         // Rita board!
         let board = [];
 
@@ -44,9 +44,24 @@ class Game extends Component {
         return currentPlayer === player1 ? this.setState({ playerTurn: 'Player2 turn!' }) || player2 : this.setState({ playerTurn: 'Player1 turn!' }) || player1;
     }
 
-    // playGame(index) {
+    playGame(index) {
+        const { gameBoard, currentPlayer, gameOver } = this.state;
 
-    // }
+        // ifall inte gameOver, alltså, om spelet är fortfarande igång och ingen har vunnit eller oavgjort!
+        if (!gameOver) {
+            // Kunna placera saker på min board!
+            let board = gameBoard;
+
+            for (let row = 5; row >= 0; row--) {
+                if (!board[row][index]) {
+                    board[row][index] = currentPlayer;
+                    break;      // om jag inte skriver break, så kommer den fylla hela min kolumn bara jag klickar en gång!
+                }
+            }
+
+            this.setState({ currentPlayer: this.changePlayer() });            
+        }
+    }
 
 
     render() {
@@ -54,7 +69,7 @@ class Game extends Component {
 
         return (
             <div>
-                {/* <button onClick={() => this.startGame()}>New game</button> */}
+                <button onClick={() => this.startGame()}>New game</button>
 
                 <table>
                     <thead></thead>
@@ -62,12 +77,21 @@ class Game extends Component {
                         {gameBoard.map((row, i) => {
                             return (
                                 <tr key={i}>
-                                    {row.map((cell, i) => {
+                                    {row.map((value, i) => {
+
+                                        let color = 'white';
+                                        if (value === 1) {
+                                            color = 'red';
+                                        } else if (value === 2) {
+                                            color = 'yellow';
+                                        }
 
                                         return (
                                             <>
                                             <td key={i}>
-                                                <div className="box" onClick={() => this.play(i)}></div>
+                                                <div className="box" onClick={() => this.playGame(i)}>
+                                                    <div className={color}></div>
+                                                </div>
                                             </td>
                                             </>
                                         )
