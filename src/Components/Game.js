@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import '../App.css';
 
 class Game extends Component {
     constructor(props) {
@@ -45,7 +46,7 @@ class Game extends Component {
     }
 
     playGame(index) {
-        const { gameBoard, currentPlayer, gameOver } = this.state;
+        const { gameBoard, currentPlayer, gameOver, player1, player2 } = this.state;
 
         // ifall inte gameOver, alltså, om spelet är fortfarande igång och ingen har vunnit eller oavgjort!
         if (!gameOver) {
@@ -59,8 +60,37 @@ class Game extends Component {
                 }
             }
 
-            this.setState({ currentPlayer: this.changePlayer() });            
+            // checka min board resultat!
+
+        if (this.checkVertical(board) === player1 ) {
+            this.setState({ gameOver: true, message: 'Player1 Won!', playerTurn: '' });
         }
+        else if (this.checkVertical(board) === player2) {
+            this.setState({ gameOver: true, message: 'Player2 Won', playerTurn: '' });
+        }
+        else if (this.checkVertical(board) !== player1 && this.checkVertical(board) !== player2 && this.checkVertical(board) !== 'draw') {    // skriv bara else
+            this.setState({ currentPlayer: this.changePlayer() });
+        }
+        }
+        }
+
+    checkVertical(board) {
+        // Check only if row is 3 or greater
+        for (let r = 3; r < 6; r++) {   // jag räknar med index --> alltså  -->  0, 1, 2, 3, 4, 5, 6
+        for (let c = 0; c < 7; c++) {
+            if (board[r][c]) {
+            if (board[r][c] === board[r - 1][c] &&
+                board[r][c] === board[r - 2][c] &&
+                board[r][c] === board[r - 3][c]) {
+                return board[r][c];    
+            }
+            }
+        }
+        }
+    }
+
+    componentWillUnmount() {
+        this.startGame();
     }
 
 
@@ -71,18 +101,19 @@ class Game extends Component {
             <div>
                 <button onClick={() => this.startGame()}>New game</button>
 
+
                 <table>
                     <thead></thead>
                     <tbody>
                         {gameBoard.map((row, i) => {
                             return (
                                 <tr key={i}>
-                                    {row.map((value, i) => {
+                                    {row.map((box, i) => {
 
                                         let color = 'white';
-                                        if (value === 1) {
+                                        if (box === 1) {
                                             color = 'red';
-                                        } else if (value === 2) {
+                                        } else if (box === 2) {
                                             color = 'yellow';
                                         }
 
@@ -101,6 +132,7 @@ class Game extends Component {
                         })}
                     </tbody>
                 </table>
+
                 <p>{playerTurn}</p>
                 <p>{message}</p>
             </div>
