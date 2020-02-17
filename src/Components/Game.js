@@ -61,16 +61,20 @@ class Game extends Component {
             }
 
             // checka min board resultat!
+        let checkResult = this.checkAllWaysToWin(board);
 
-        if (this.checkVertical(board) === player1 ) {
+        if (checkResult === player1 ) {
             this.setState({ gameOver: true, message: 'Player1 Won!', playerTurn: '' });
         }
-        else if (this.checkVertical(board) === player2) {
+        else if (checkResult === player2) {
             this.setState({ gameOver: true, message: 'Player2 Won', playerTurn: '' });
         }
-        else if (this.checkVertical(board) !== player1 && this.checkVertical(board) !== player2 && this.checkVertical(board) !== 'draw') {    // skriv bara else
+        else if (checkResult !== player1 && checkResult !== player2 && checkResult !== 'draw') {    // skriv bara else
             this.setState({ currentPlayer: this.changePlayer() });
         }
+        }
+        else {
+            this.setState({ message: 'Game over, restart game!' })
         }
         }
 
@@ -87,6 +91,12 @@ class Game extends Component {
             }
         }
         }
+    }
+    
+
+    // denna funktionen kommer ta in alla sätt man kan vinna sen checka i playGame funcktionen vem som har vunnit, alltså om det är Player1 som har vunnit eller Player 2
+    checkAllWaysToWin(board) {
+        return this.checkVertical(board);
     }
 
     componentWillUnmount() {
