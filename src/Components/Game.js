@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import '../App.css';
+import { Helmet } from 'react-helmet';
 
 class Game extends Component {
     constructor(props) {
@@ -14,8 +15,10 @@ class Game extends Component {
             currentPlayer: null,
 
             gameOver: false,
+
             message: '',
-            playerTurn: ''
+            playerTurn: '',
+            columnFull: ''
         }
     }
 
@@ -53,14 +56,30 @@ class Game extends Component {
             // Kunna placera saker på min board!
             let board = gameBoard;
 
+            // jag vill skapa här en drop, 
+            // alltså om min column är full, 
+            // så ska jag inte kunna fortsätta byta spelare, 
+            // utan bara kunna byta spelare när det finns en tom yta!
+            let drop = false;
+
             for (let row = 5; row >= 0; row--) {
                 if (!board[row][index]) {
                     board[row][index] = currentPlayer;
+                    drop = true;
                     break;      // om jag inte skriver break, så kommer den fylla hela min kolumn bara jag klickar en gång!
                 }
             }
 
-            // checka min board resultat!
+            // if (!drop) return;
+            if (!drop) {
+                this.setState({ columnFull: 'There is no free space in this column! Please try another column!' });
+                return
+            }
+            else {
+                this.setState({ columnFull: '' });
+            }
+
+        // checka min board resultat!
         let checkResult = this.checkAllWaysToWin(board);
 
         if (checkResult === player1 ) {
@@ -69,7 +88,10 @@ class Game extends Component {
         else if (checkResult === player2) {
             this.setState({ gameOver: true, message: 'Player2 Won', playerTurn: '' });
         }
-        else if (checkResult !== player1 && checkResult !== player2 && checkResult !== 'draw') {    // skriv bara else
+        else if (checkResult === 'Game-Draw') {
+            this.setState({ gameOver: true, message: 'The game is draw!', playerTurn: '' });
+        }
+        else if (checkResult !== player1 && checkResult !== player2 && checkResult !== 'Game-Draw') {    // kan bara skriva direkt else istället för else if, men jag tycker de ser fint ut så :)
             this.setState({ currentPlayer: this.changePlayer() });
         }
         }
@@ -78,9 +100,9 @@ class Game extends Component {
         }
         }
 
-    checkVertical(board) {
-        // Check only if row is 3 or greater
-        for (let r = 3; r < 6; r++) {   // jag räknar med index --> alltså  -->  0, 1, 2, 3, 4, 5, 6
+    checkVerticalWay(board) {
+        // Checkar bara om row är 3 eller större!
+        for (let r = 3; r < 6; r++) {
         for (let c = 0; c < 7; c++) {
             if (board[r][c]) {
             if (board[r][c] === board[r - 1][c] &&
@@ -92,11 +114,68 @@ class Game extends Component {
         }
         }
     }
+
+    checkHorizontalWay(board) {
+        // Checkar bara om kolumn är 3 eller mindre
+        for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 4; c++) {
+            if (board[r][c]) {
+            if (board[r][c] === board[r][c + 1] && 
+                board[r][c] === board[r][c + 2] &&
+                board[r][c] === board[r][c + 3]) {
+                return board[r][c];
+            }
+            }
+        }
+        }
+    }
     
+    checkDiagonalRight(board) {
+        // Checkar ifall row är 3 eller större och ifall column är 3 eller mindre
+        for (let r = 3; r < 6; r++) {
+        for (let c = 0; c < 4; c++) {
+            if (board[r][c]) {
+            if (board[r][c] === board[r - 1][c + 1] &&
+                board[r][c] === board[r - 2][c + 2] &&
+                board[r][c] === board[r - 3][c + 3]) {
+                return board[r][c];
+            }
+            }
+        }
+        }
+    }
+
+    checkDiagonalLeft(board) {
+        // Checkar ifall row är 3 eller större och kolumn 3 eller större!
+        for (let r = 3; r < 6; r++) {
+        for (let c = 3; c < 7; c++) {
+            if (board[r][c]) {
+            if (board[r][c] === board[r - 1][c - 1] &&
+                board[r][c] === board[r - 2][c - 2] &&
+                board[r][c] === board[r - 3][c - 3]) {
+                return board[r][c];
+            }
+            }
+        }
+        }
+    }
+
+    checkDraw(board) {
+        //  vi checkar här för draw!
+        for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 7; c++) {
+            if (board[r][c] === null) {
+            return null;
+            }
+        }
+        }
+        return 'Game-Draw';    
+    }
+
 
     // denna funktionen kommer ta in alla sätt man kan vinna sen checka i playGame funcktionen vem som har vunnit, alltså om det är Player1 som har vunnit eller Player 2
     checkAllWaysToWin(board) {
-        return this.checkVertical(board);
+        return this.checkVerticalWay(board) || this.checkHorizontalWay(board) || this.checkDiagonalLeft(board) || this.checkDiagonalRight(board) || this.checkDraw(board);
     }
 
     componentWillUnmount() {
@@ -105,10 +184,14 @@ class Game extends Component {
 
 
     render() {
-        const { gameBoard, message, playerTurn } = this.state;
+        const { gameBoard, message, playerTurn, columnFull } = this.state;
 
         return (
             <div>
+                <Helmet>
+                    <title>Connected 4 Game</title>
+                </Helmet>
+
                 <button onClick={() => this.startGame()}>New game</button>
 
 
@@ -130,8 +213,8 @@ class Game extends Component {
                                         return (
                                             <>
                                             <td key={i}>
-                                                <div className="box" onClick={() => this.playGame(i)}>
-                                                    <div className={color}></div>
+                                                <div key={i} className="box" onClick={() => this.playGame(i)}>
+                                                    <div key={i} className={color}></div>
                                                 </div>
                                             </td>
                                             </>
@@ -143,8 +226,11 @@ class Game extends Component {
                     </tbody>
                 </table>
 
-                <p>{playerTurn}</p>
-                <p>{message}</p>
+                <div className="message-container">
+                    <p style={{ color: 'blue' }}>{playerTurn}</p>
+                    <p style={{ color: 'red' }}>{columnFull}</p>
+                    <p style={{ color: 'green' }}>{message}</p>
+                </div>
             </div>
         )
     }
